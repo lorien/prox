@@ -25,12 +25,14 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('task_file')
     parser.add_argument('-w', '--workers', type=int, default=1)
+    parser.add_argument('-n', '--name')
     opts = parser.parse_args()
 
     config = yaml.load(open(opts.task_file))
     taskq = Queue()
     for task in config['task']:
-        taskq.put(task)
+        if not opts.name or opts.name == task.get('name'):
+            taskq.put(task)
     global_config = (config.get('config', {}) or {})
 
     pool = []
