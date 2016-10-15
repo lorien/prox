@@ -15,9 +15,10 @@ import gzip
 from .database import Check, init_database
 
 THREADS = 50 
+REPEAT = 1
 # http://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#module-urllib3.util.timeout
 CONNECT_TIMEOUT = 1
-READ_TIMEOUT = 3 # this is not TOTAL READ TIME timeout
+READ_TIMEOUT = 3 # this does NOT limit total read time
 
 
 def download_plist(url):
@@ -26,56 +27,62 @@ def download_plist(url):
     return lines
 
 
-def check_worker(task_iter, proxy_type, stat):
+def check_proxy(proxy, proxy_type):
+    if proxy_type == 'socks':
+        pool = SOCKSProxyManager('socks5://%s' % proxy)
+    else:
+        pool = urllib3.ProxyManager('http://%s' % proxy)
+    retries = urllib3.Retry(total=None, connect=False,
+                            read=False, redirect=10,
+                            raise_on_redirect=False)
+    timeout = urllib3.Timeout(connect=CONNECT_TIMEOUT,
+                              read=READ_TIMEOUT)
+    op = {
+        'status': None,
+        'connect_time': None,
+        'read_time': None,
+        'error': None,
+    }
+    try:
+        start_time = time.time()
+        res = pool.request('GET', 'http://yandex.ru/robots.txt',
+                           retries=retries, timeout=timeout,
+                           preload_content=False)
+        connected_time = time.time()
+        op['connect_time'] = round(connected_time - start_time, 2)
+        data = res.read()
+        op['read_time'] = round(time.time() - connected_time, 2)
+    except Exception as ex:
+        error = type(ex).__name__
+        op['error'] = error
+        if error in ('NewConnectionError', 'ConnectTimeoutError'):
+            op['status'] = 'connect_fail' 
+        elif error in ('ProtocolError', 'ReadTimeoutError',):
+            op['status'] = 'read_fail'
+        else:
+            raise Exception('Unexpected error: %s' % error)
+    else:
+        if b'Disallow: /adresa-segmentator' in data:
+            op['status'] = 'ok'
+        else:
+            op['status'] = 'data_fail'
+    return op
+
+
+def check_worker(task_iter, proxy_type, repeat, stat):
     while True:
         try:
             proxy = next(task_iter)
         except StopIteration:
             break
         else:
-            if proxy_type == 'socks':
-                pool = SOCKSProxyManager('socks5://%s' % proxy)
-            else:
-                pool = urllib3.ProxyManager('http://%s' % proxy)
-            retries = urllib3.Retry(total=None, connect=False,
-                                    read=False, redirect=10,
-                                    raise_on_redirect=False)
-            timeout = urllib3.Timeout(connect=CONNECT_TIMEOUT,
-                                      read=READ_TIMEOUT)
-            op = {
-                'status': None,
-                'connect_time': None,
-                'read_time': None,
-                'error': None,
-            }
-            try:
-                start_time = time.time()
-                res = pool.request('GET', 'http://yandex.ru/robots.txt',
-                                   retries=retries, timeout=timeout,
-                                   preload_content=False)
-                connected_time = time.time()
-                op['connect_time'] = round(connected_time - start_time, 2)
-                data = res.read()
-                op['read_time'] = round(time.time() - connected_time, 2)
-            except Exception as ex:
-                error = type(ex).__name__
-                op['error'] = error
-                if error in ('NewConnectionError', 'ConnectTimeoutError'):
-                    op['status'] = 'connect_fail' 
-                elif error in ('ProtocolError', 'ReadTimeoutError',):
-                    op['status'] = 'read_fail'
-                else:
-                    raise Exception('Unexpected error: %s' % error)
-            else:
-                if b'Disallow: /adresa-segmentator' in data:
-                    op['status'] = 'ok'
-                else:
-                    op['status'] = 'data_fail'
-            stat['count'][op['status']] += 1
-            stat['ops'][proxy].append(op)
-            if op['status'] == 'ok':
-                stat['count']['ok_connect_time'] += op['connect_time']
-                stat['count']['ok_read_time'] += op['read_time']
+            for x in range(repeat):
+                op = check_proxy(proxy, proxy_type)
+                stat['count'][op['status']] += 1
+                stat['ops'][proxy].append(op)
+                if op['status'] == 'ok':
+                    stat['count']['ok_connect_time'] += op['connect_time']
+                    stat['count']['ok_read_time'] += op['read_time']
 
 
 def get_stat_fails(stat):
@@ -108,7 +115,7 @@ def normalize_plist_url(url):
 
 
 def check_plist(plist_url, proxy_type, threads=THREADS,
-                limit=None, name=None, save=False):
+                limit=None, name=None, save=False, repeat=REPEAT):
     if not name:
         name = plist_url.split('/')[-1]
 
@@ -144,7 +151,8 @@ def check_plist(plist_url, proxy_type, threads=THREADS,
 
     pool = []
     for x in range(threads):
-        th = Thread(target=check_worker, args=[task_iter, proxy_type, stat])
+        th = Thread(target=check_worker, args=[task_iter, proxy_type,
+                                               repeat, stat])
         th.start()
         pool.append(th)
     for th in pool:
@@ -178,10 +186,11 @@ def main():
     parser.add_argument('-l', '--limit', type=int)
     parser.add_argument('-t', '--threads', default=THREADS, type=int)
     parser.add_argument('-n', '--name')
+    parser.add_argument('-r', '--repeat', type=int, default=REPEAT)
     parser.add_argument('-s', '--save', action='store_true', default=False)
     opts = parser.parse_args()
     check_plist(opts.plist_url, limit=opts.limit, proxy_type=opts.proxy_type,
-                save=opts.save)
+                save=opts.save, repeat=opts.repeat)
 
 
 if __name__ == '__main__':
