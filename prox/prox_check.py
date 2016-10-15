@@ -37,7 +37,9 @@ def check_worker(task_iter, proxy_type, stat):
                 pool = SOCKSProxyManager('socks5://%s' % proxy)
             else:
                 pool = urllib3.ProxyManager('http://%s' % proxy)
-            retries = urllib3.Retry(connect=False, read=False, redirect=10)
+            retries = urllib3.Retry(total=None, connect=False,
+                                    read=False, redirect=10,
+                                    raise_on_redirect=False)
             timeout = urllib3.Timeout(connect=CONNECT_TIMEOUT,
                                       read=READ_TIMEOUT)
             op = {
