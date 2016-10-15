@@ -81,9 +81,10 @@ def get_stat_fails(stat):
                                           'data_fail'])
 
 
-def render_stat_counts(stat):
+def render_stat_counts(name, stat):
     fail = get_stat_fails(stat)
-    return ('OK: %d, FAIL: %d (CONNECT: %d, READ: %d, DATA: %d)' % (
+    return ('[%s] OK: %d, FAIL: %d (CONNECT: %d, READ: %d, DATA: %d)' % (
+            name,
             stat['count']['ok'],
             fail,
             stat['count']['connect_fail'],
@@ -91,10 +92,10 @@ def render_stat_counts(stat):
             stat['count']['data_fail']))
 
 
-def stat_worker(stat):
+def stat_worker(name, stat):
     while True:
         time.sleep(3)
-        print(render_stat_counts(stat))
+        print(render_stat_counts(name, stat))
 
 
 def normalize_plist_url(url):
@@ -106,6 +107,9 @@ def normalize_plist_url(url):
 
 def check_plist(plist_url, proxy_type, threads=THREADS,
                 limit=None, name=None):
+    if not name:
+        name = plist_url.split('/')[-1]
+
     init_database()
     plist_url = normalize_plist_url(plist_url)
     plist = download_plist(plist_url)
@@ -130,7 +134,7 @@ def check_plist(plist_url, proxy_type, threads=THREADS,
         'ops': defaultdict(list),
     }
     
-    th = Thread(target=stat_worker, args=[stat])
+    th = Thread(target=stat_worker, args=[name, stat])
     th.daemon = True
     th.start()
     start = time.time()
@@ -143,12 +147,9 @@ def check_plist(plist_url, proxy_type, threads=THREADS,
     for th in pool:
         th.join()
     session_time = time.time() - start
-    print(render_stat_counts(stat))
+    print(render_stat_counts(name, stat))
     
     ops_blob = gzip.compress(json.dumps(stat['ops']).encode('utf-8'))
-
-    if not name:
-        name = plist_url.split('/')[-1]
 
     Check.create(
         name=name,
