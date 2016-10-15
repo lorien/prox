@@ -15,7 +15,13 @@ setup(
     packages = find_packages(),
     include_package_data = True,
     scripts = ('bin/prox_check', 'bin/prox_task'),
-
+    install_requires = [
+        'urllib3',
+        'pysocks',
+        'peewee',
+        'bottle',
+        'pyyaml',
+    ],
     license = "MIT",
     keywords = "proxy proxylist",
     classifiers = [
