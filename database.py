@@ -20,6 +20,7 @@ def init_database():
 
 class Check(Model):
     id = UUIDField(primary_key=True, default=uuid4)
+    name = CharField(max_length=100)
     created = DateTimeField(default=datetime.utcnow, index=True)
     count_ok = IntegerField()
     count_fail = IntegerField()
@@ -29,7 +30,7 @@ class Check(Model):
     avg_connect_time = FloatField()
     avg_read_time = FloatField()
     session_time = FloatField()
-    ops = TextField()
+    ops = BlobField()
 
     class Meta:
         database = db_proxy

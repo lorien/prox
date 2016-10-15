@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<head>
+    <meta name="robots" content="noindex"/>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Proxy Checker</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
+</head>
+    <div class="container">
+        <div class="row">
+            <home></home>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/riot/2.6.2/riot.js" integrity="sha256-T7LwPaiksb1Z5pj4mToQi5ajPL1k0eWnmsGBhTsrZv0=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js" integrity="sha384-Plbmg8JY28KFelvJVai01l8WyZzrYWG825m+cZ0eDDS1f7d/js6ikvy1+X+guPIB" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>
+
+<script type="text/template" id="tag_home_tpl">
+<div class="offset-md-2 col-md-8">
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>OK</th>
+            <th>Fail</th>
+            <th>Avg. connect</th>
+            <th>Avg. read</th>
+        </tr>
+    </thead>
+    <tr each="{ item in checkList }">
+        <td>{ item.name }</td>
+        <td>{ item.created.match(/^(.+?)\./)[1].replace(/T/, ' ') }</td>
+        <td class="text-success">{ item.count_ok }</td>
+        <td class="text-danger">{ item.count_fail }</td>
+        <td>{ item.avg_connect_time }</td>
+        <td>{ item.avg_read_time }</td>
+    </tr>
+<table>
+</div>
+</script>
+
+<script>
+function tag_home(opts) {
+    var self = this;
+
+    $.get('/api/check/find?ago=m1440&brief=1', {}, function(data) {
+        self.checkList = data.result;
+        self.update();
+    });
+};
+
+riot.tag('home', tag_home_tpl.innerHTML, tag_home);
+
+mountedContentTag = null;
+
+riot.route(function(part1, part2) {
+    console.log('[route]: part1=' + part1 + ', part2=' + part2);
+    if (mountedContentTag) {
+        mountedContentTag.unmount(true);
+    }
+    /*if (!part1) {
+        console.log('[route]: home');
+        mountedContentTag = riot.mount('home')[0];
+
+        for key in ('count_ok', 'count_fail', 'count_connect_fail',
+                    'count_read_fail', 'count_data_fail',
+                    'avg_read_time', 'avg_connect_time',
+                    'session_time'):
+    }*/
+    mountedContentTag = riot.mount('home')[0];
+});
+
+riot.route.start(true);
+</script>
+</body>

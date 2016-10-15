@@ -9,6 +9,8 @@ import os
 import time
 import logging
 import json
+from random import shuffle
+import gzip
 
 from database import Check, init_database
 
@@ -102,10 +104,12 @@ def normalize_plist_url(url):
     return url
 
 
-def check_plist(plist_url, proxy_type, threads=THREADS, limit=None):
+def check_plist(plist_url, proxy_type, threads=THREADS,
+                limit=None, name=None):
     init_database()
     plist_url = normalize_plist_url(plist_url)
     plist = download_plist(plist_url)
+    shuffle(plist)
 
     def task_iter_func(plist, limit=None):
         for count, proxy in enumerate(plist):
@@ -140,8 +144,14 @@ def check_plist(plist_url, proxy_type, threads=THREADS, limit=None):
         th.join()
     session_time = time.time() - start
     print(render_stat_counts(stat))
+    
+    ops_blob = gzip.compress(json.dumps(stat['ops']).encode('utf-8'))
+
+    if not name:
+        name = plist_url.split('/')[-1]
 
     Check.create(
+        name=name,
         count_ok=stat['count']['ok'],
         count_fail=get_stat_fails(stat),
         count_connect_fail=stat['count']['connect_fail'],
@@ -152,7 +162,7 @@ def check_plist(plist_url, proxy_type, threads=THREADS, limit=None):
         avg_read_time=round(stat['count']['ok_read_time']
                             / (stat['count']['ok'] or 1), 2),
         session_time=round(session_time, 2),
-        ops=json.dumps(stat['ops']),
+        ops=ops_blob,
     )
 
 
@@ -162,6 +172,7 @@ def main():
     parser.add_argument('plist_url')
     parser.add_argument('-l', '--limit', type=int)
     parser.add_argument('-t', '--threads', default=THREADS, type=int)
+    parser.add_argument('-n', '--name')
     opts = parser.parse_args()
     check_plist(opts.plist_url, limit=opts.limit, proxy_type=opts.proxy_type)
 
