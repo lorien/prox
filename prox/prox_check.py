@@ -106,11 +106,12 @@ def normalize_plist_url(url):
 
 
 def check_plist(plist_url, proxy_type, threads=THREADS,
-                limit=None, name=None):
+                limit=None, name=None, save=False):
     if not name:
         name = plist_url.split('/')[-1]
 
-    init_database()
+    if save:
+        init_database()
     plist_url = normalize_plist_url(plist_url)
     plist = download_plist(plist_url)
     shuffle(plist)
@@ -151,20 +152,21 @@ def check_plist(plist_url, proxy_type, threads=THREADS,
     
     ops_blob = gzip.compress(json.dumps(stat['ops']).encode('utf-8'))
 
-    Check.create(
-        name=name,
-        count_ok=stat['count']['ok'],
-        count_fail=get_stat_fails(stat),
-        count_connect_fail=stat['count']['connect_fail'],
-        count_read_fail=stat['count']['read_fail'],
-        count_data_fail=stat['count']['data_fail'],
-        avg_connect_time=round(stat['count']['ok_connect_time']
-                               / (stat['count']['ok'] or 1), 2),
-        avg_read_time=round(stat['count']['ok_read_time']
-                            / (stat['count']['ok'] or 1), 2),
-        session_time=round(session_time, 2),
-        ops=ops_blob,
-    )
+    if save:
+        Check.create(
+            name=name,
+            count_ok=stat['count']['ok'],
+            count_fail=get_stat_fails(stat),
+            count_connect_fail=stat['count']['connect_fail'],
+            count_read_fail=stat['count']['read_fail'],
+            count_data_fail=stat['count']['data_fail'],
+            avg_connect_time=round(stat['count']['ok_connect_time']
+                                   / (stat['count']['ok'] or 1), 2),
+            avg_read_time=round(stat['count']['ok_read_time']
+                                / (stat['count']['ok'] or 1), 2),
+            session_time=round(session_time, 2),
+            ops=ops_blob,
+        )
 
 
 def main():
@@ -174,6 +176,7 @@ def main():
     parser.add_argument('-l', '--limit', type=int)
     parser.add_argument('-t', '--threads', default=THREADS, type=int)
     parser.add_argument('-n', '--name')
+    parser.add_argument('-s', '--save', action='store_true', default=False)
     opts = parser.parse_args()
     check_plist(opts.plist_url, limit=opts.limit, proxy_type=opts.proxy_type)
 

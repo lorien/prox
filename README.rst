@@ -33,14 +33,18 @@ How to check multiple lists
 Create file foo.yml like:
 
 .. code:: text
+    
+    config:
+      save: 1
 
-    - proxy_type: socks
-      plist_url: var/gate-rusdot.txt
-      limit: 100
+    task:
+      - proxy_type: socks
+        plist_url: var/plist1.txt
+        limit: 100
 
-    - proxy_type: http
-      plist_url: var/gate-million10-1.txt
-      limit: 100
+      - proxy_type: http
+        plist_url: http://example.com/servers.txt
+        limit: 100
 
 It should by YML list of tasks. Each task contains key names same
 as check_plist.py command line arguments.

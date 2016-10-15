@@ -3,11 +3,12 @@ from argparse import ArgumentParser
 import yaml
 from multiprocessing import Process, Queue
 from queue import Empty
+from copy import deepcopy
 
 from .prox_check import check_plist
 
 
-def worker(taskq):
+def worker(global_config, taskq):
     while True:
         try:
             task = taskq.get_nowait()
@@ -15,14 +16,9 @@ def worker(taskq):
             break
         else:
             print('Checking %s' % (task['plist_url']))
-            check_plist(**task)
-
-
-def load_task_queue(task_file):
-    taskq = Queue()
-    for task in yaml.load(open(task_file)):
-        taskq.put(task)
-    return taskq
+            opts = deepcopy(global_config)
+            opts.update(task)
+            check_plist(**opts)
 
 
 def main():
@@ -30,10 +26,16 @@ def main():
     parser.add_argument('task_file')
     parser.add_argument('-w', '--workers', type=int, default=1)
     opts = parser.parse_args()
-    taskq = load_task_queue(opts.task_file)
+
+    config = yaml.load(open(opts.task_file))
+    taskq = Queue()
+    for task in config['task']:
+        taskq.put(task)
+    global_config = (config.get('config', {}) or {})
+
     pool = []
     for x in range(opts.workers):
-        pr = Process(target=worker, args=[taskq])
+        pr = Process(target=worker, args=[global_config, taskq])
         pr.start()
         pool.append(pr)
     for pr in pool:
