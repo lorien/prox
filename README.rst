@@ -4,7 +4,9 @@ Prox - the tool to check how bad your proxy list is
 Installation
 ------------
 
-Clone repo. Run `make build`. Activate created virtualenv.
+.. code:: bash
+
+    pip install -U prox
 
 
 How to check the proxy list
@@ -16,13 +18,13 @@ If the proxylist located at http://example.com/abc.txt:
 
 .. code:: bash
 
-    ./check_plist.py socks URL http://example.com/abc.txt
+    prox_check socks URL http://example.com/abc.txt
 
 If the list is in local file:
 
 .. code:: bash
 
-    ./check_plist.py socks path/to/file.txt
+    prox_check socks path/to/file.txt
 
 
 How to check multiple lists
@@ -30,7 +32,7 @@ How to check multiple lists
 
 Create file foo.yml like:
 
-.. code:: yml
+.. code:: text
 
     - proxy_type: socks
       plist_url: var/gate-rusdot.txt
@@ -47,4 +49,4 @@ Run the command:
 
 .. code:: bash
 
-    ./check_task.py foo.yml
+    prox_task foo.yml

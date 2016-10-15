@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+krom setuptools import setup, find_packages
 import os
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
