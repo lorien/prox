@@ -180,7 +180,8 @@ def main():
     parser.add_argument('-n', '--name')
     parser.add_argument('-s', '--save', action='store_true', default=False)
     opts = parser.parse_args()
-    check_plist(opts.plist_url, limit=opts.limit, proxy_type=opts.proxy_type)
+    check_plist(opts.plist_url, limit=opts.limit, proxy_type=opts.proxy_type,
+                save=opts.save)
 
 
 if __name__ == '__main__':

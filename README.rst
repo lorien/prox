@@ -6,7 +6,7 @@ Installation
 
 .. code:: bash
 
-    pip install -U prox
+    pip3 install -U prox
 
 
 How to check the proxy list
