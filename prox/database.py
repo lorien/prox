@@ -9,7 +9,7 @@ db_proxy = Proxy()
 
 
 def init_database():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.abspath(os.getcwd())
     db_path = os.path.join(base_dir, 'var/prox.%d.sqlite' % SCHEMA_VERSION)
     connection_url = 'sqlite:///%s' % db_path
     db_proxy.initialize(db_url.connect(connection_url))

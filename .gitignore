@@ -6,7 +6,8 @@
 *.orig
 
 # Project specific
-/.env
+/.env/
+/*.egg-info/
 pip-log.txt
 /var/
 /.hg/

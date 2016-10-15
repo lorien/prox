@@ -12,7 +12,7 @@ import json
 from random import shuffle
 import gzip
 
-from database import Check, init_database
+from .database import Check, init_database
 
 THREADS = 50 
 # http://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#module-urllib3.util.timeout

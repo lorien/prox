@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 from argparse import ArgumentParser
 import yaml
-from check_plist import check_plist
 from multiprocessing import Process, Queue
 from queue import Empty
+
+from .prox_check import check_plist
 
 
 def worker(taskq):
