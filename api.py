@@ -16,21 +16,25 @@ def parse_time_interval(val):
 
 @app.route('/api/check/find')
 def check_find():
-    #date_from = request.query.getunicode('date_from')
-    #date_to = request.query.getunicode('date_to')
     ago = parse_time_interval(request.query.getunicode('ago'))
+    exclude = request.query.getunicode('exclude', '').split(',')
+    brief = request.query.getunicode('brief') == '1'
     now = datetime.utcnow()
     qs = Check.select().where((Check.created >= (now - ago)) &
-                             (Check.created < now))
+                              (Check.created < now) &
+                              (~Check.id.in_(exclude)))
     res = []
     for check in qs:
         item = {}
         for key in ('count_ok', 'count_fail', 'count_connect_fail',
-                    'count_read_fail', 'count_data_fail'):
+                    'count_read_fail', 'count_data_fail',
+                    'avg_read_time', 'avg_connect_time',
+                    'session_time'):
             item[key] = getattr(check, key)
         item['id'] = str(check.id)
         item['created'] = check.created.isoformat()
-        item['ops'] = json.loads(check.ops)
+        if not brief:
+            item['ops'] = json.loads(check.ops)
         res.append(item)
     response.headers['content-type'] = 'text/json'
     return json.dumps({'result': res})

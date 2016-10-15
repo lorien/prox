@@ -20,12 +20,15 @@ def init_database():
 
 class Check(Model):
     id = UUIDField(primary_key=True, default=uuid4)
-    created = DateField(default=datetime.utcnow, index=True)
+    created = DateTimeField(default=datetime.utcnow, index=True)
     count_ok = IntegerField()
     count_fail = IntegerField()
     count_connect_fail = IntegerField()
     count_read_fail = IntegerField()
     count_data_fail = IntegerField()
+    avg_connect_time = FloatField()
+    avg_read_time = FloatField()
+    session_time = FloatField()
     ops = TextField()
 
     class Meta:

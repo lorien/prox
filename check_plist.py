@@ -13,8 +13,9 @@ import json
 from database import Check, init_database
 
 THREADS = 50 
+# http://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#module-urllib3.util.timeout
 CONNECT_TIMEOUT = 1
-READ_TIMEOUT = 3
+READ_TIMEOUT = 3 # this is not TOTAL READ TIME timeout
 
 
 def download_plist(url):
@@ -48,9 +49,10 @@ def check_worker(task_iter, proxy_type, stat):
                 res = pool.request('GET', 'http://yandex.ru/robots.txt',
                                    retries=retries, timeout=timeout,
                                    preload_content=False)
-                op['connect_time'] = round(time.time() - start_time, 2)
+                connected_time = time.time()
+                op['connect_time'] = round(connected_time - start_time, 2)
                 data = res.read()
-                op['read_time'] = round(time.time() - start_time, 2)
+                op['read_time'] = round(time.time() - connected_time, 2)
             except Exception as ex:
                 error = type(ex).__name__
                 op['error'] = error
@@ -67,6 +69,9 @@ def check_worker(task_iter, proxy_type, stat):
                     op['status'] = 'data_fail'
             stat['count'][op['status']] += 1
             stat['ops'][proxy].append(op)
+            if op['status'] == 'ok':
+                stat['count']['ok_connect_time'] += op['connect_time']
+                stat['count']['ok_read_time'] += op['read_time']
 
 
 def get_stat_fails(stat):
@@ -115,6 +120,8 @@ def check_plist(plist_url, proxy_type, threads=THREADS, limit=None):
             'connect_fail': 0,
             'read_fail': 0,
             'data_fail': 0,
+            'ok_connect_time': 0,
+            'ok_read_time': 0,
         },
         'ops': defaultdict(list),
     }
@@ -122,6 +129,7 @@ def check_plist(plist_url, proxy_type, threads=THREADS, limit=None):
     th = Thread(target=stat_worker, args=[stat])
     th.daemon = True
     th.start()
+    start = time.time()
 
     pool = []
     for x in range(threads):
@@ -130,6 +138,7 @@ def check_plist(plist_url, proxy_type, threads=THREADS, limit=None):
         pool.append(th)
     for th in pool:
         th.join()
+    session_time = time.time() - start
     print(render_stat_counts(stat))
 
     Check.create(
@@ -138,6 +147,11 @@ def check_plist(plist_url, proxy_type, threads=THREADS, limit=None):
         count_connect_fail=stat['count']['connect_fail'],
         count_read_fail=stat['count']['read_fail'],
         count_data_fail=stat['count']['data_fail'],
+        avg_connect_time=round(stat['count']['ok_connect_time']
+                               / (stat['count']['ok'] or 1), 2),
+        avg_read_time=round(stat['count']['ok_read_time']
+                            / (stat['count']['ok'] or 1), 2),
+        session_time=round(session_time, 2),
         ops=json.dumps(stat['ops']),
     )
 

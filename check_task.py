@@ -9,6 +9,7 @@ def main():
     opts = parser.parse_args()
     task_list = yaml.load(open(opts.task_file))
     for task in task_list:
+        print('Checking %s' % (task['plist_url']))
         check_plist(**task)
 
 
