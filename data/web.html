@@ -22,6 +22,12 @@
 
 <script type="text/template" id="tag_home_tpl">
 <div class="offset-md-2 col-md-8">
+<div class="m-y-1">
+    <select id="check-name" onchange="{ onCheckNameFilterChanged }">
+        <option value="">All</option>
+        <option each="{ item in uniqCheckNames }">{ item }</option>
+    </select>
+</div>
 <table class="table">
     <thead>
         <tr>
@@ -33,7 +39,7 @@
             <th>Avg. read</th>
         </tr>
     </thead>
-    <tr each="{ item in checkList }">
+    <tr each="{ item in getFilteredChecks() }">
         <td>{ item.name }</td>
         <td>{ item.created.match(/^(.+?)\./)[1].replace(/T/, ' ') }</td>
         <td class="text-success">{ item.count_ok }</td>
@@ -48,11 +54,32 @@
 <script>
 function tag_home(opts) {
     var self = this;
+    self.checkNameFilter = null;
+    self.zero = false;
 
     $.get('/api/check/find?ago=m1440&brief=1', {}, function(data) {
+        var names = [];
+        data.result.map(function(item) {
+            if (names.indexOf(item.name) === -1) {
+                names.push(item.name);
+            }
+        });
         self.checkList = data.result;
+        self.uniqCheckNames = names;
         self.update();
     });
+
+    self.onCheckNameFilterChanged = function(ev) {
+        var name = $('select#check-name').val();
+        self.checkNameFilter = name;
+        self.update();
+    };
+
+    self.getFilteredChecks = function() {
+        return self.checkList.filter(function(item) {
+            return !self.checkNameFilter || (item.name == self.checkNameFilter);
+        });
+    }
 };
 
 riot.tag('home', tag_home_tpl.innerHTML, tag_home);
@@ -64,15 +91,6 @@ riot.route(function(part1, part2) {
     if (mountedContentTag) {
         mountedContentTag.unmount(true);
     }
-    /*if (!part1) {
-        console.log('[route]: home');
-        mountedContentTag = riot.mount('home')[0];
-
-        for key in ('count_ok', 'count_fail', 'count_connect_fail',
-                    'count_read_fail', 'count_data_fail',
-                    'avg_read_time', 'avg_connect_time',
-                    'session_time'):
-    }*/
     mountedContentTag = riot.mount('home')[0];
 });
 
