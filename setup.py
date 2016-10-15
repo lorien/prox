@@ -18,7 +18,7 @@ setup(
 
     license = "MIT",
     keywords = "proxy proxylist",
-    classifiers = (
+    classifiers = [
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.4',
         'License :: OSI Approved :: MIT License',
@@ -28,5 +28,5 @@ setup(
         'Operating System :: OS Independent',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Utilities',
-    ),
+    ],
 )
