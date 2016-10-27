@@ -5,7 +5,7 @@ ROOT = os.path.dirname(os.path.realpath(__file__))
 
 setup(
     name = 'prox',
-    version = '0.0.12',
+    version = '0.0.11',
     description = 'The tool to check the health of proxy list',
     long_description = open(os.path.join(ROOT, 'README.rst')).read(),
     url = 'http://github.com/lorien/prox',
@@ -16,7 +16,7 @@ setup(
     include_package_data = True,
     scripts = ('bin/prox_check', 'bin/prox_task'),
     install_requires = [
-        'urllib3>1.18.1',
+        'urllib3>=1.18.1',
         'pysocks',
         'peewee',
         'bottle',
