@@ -16,7 +16,7 @@ setup(
     include_package_data = True,
     scripts = ('bin/prox_check', 'bin/prox_task'),
     install_requires = [
-        'urllib3',
+        'urllib3>1.18.1',
         'pysocks',
         'peewee',
         'bottle',
