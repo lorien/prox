@@ -48,7 +48,7 @@ def check_proxy(proxy, proxy_type):
     }
     try:
         start_time = time.time()
-        res = pool.request('GET', 'http://yandex.ru/robots.txt',
+        res = pool.request('GET', 'https://en.wikipedia.org/robots.txt',
                            retries=retries, timeout=timeout,
                            preload_content=False)
         connected_time = time.time()
@@ -65,7 +65,7 @@ def check_proxy(proxy, proxy_type):
         else:
             raise Exception('Unexpected error: %s' % error)
     else:
-        if b'Disallow: /adresa-segmentator' in data:
+        if b'# Wikipedia work bots:' in data:
             op['status'] = 'ok'
         else:
             op['status'] = 'data_fail'
