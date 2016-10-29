@@ -25,7 +25,7 @@ setup(
         'peewee',
         'bottle',
         'pyyaml',
-        #'geoip',
+        'python-geoip-python3',
     ],
     license = "MIT",
     keywords = "proxy proxylist",
