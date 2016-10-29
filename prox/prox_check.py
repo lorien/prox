@@ -14,6 +14,9 @@ import gzip
 
 from .database import Check, init_database
 
+# https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
+urllib3.disable_warnings()
+
 THREADS = 50 
 REPEAT = 1
 # http://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#module-urllib3.util.timeout
