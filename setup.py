@@ -14,16 +14,22 @@ setup(
 
     packages = find_packages(),
     include_package_data = True,
-    scripts = ('bin/prox_check', 'bin/prox_task'),
+    scripts = [
+        'bin/prox_check',
+        'bin/prox_task',
+        'bin/prox_geo',
+    ],
     install_requires = [
         'urllib3>=1.18.1',
         'pysocks',
         'peewee',
         'bottle',
         'pyyaml',
+        #'geoip',
     ],
     license = "MIT",
     keywords = "proxy proxylist",
+    include_package_data=True,
     classifiers = [
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.4',

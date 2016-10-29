@@ -54,3 +54,10 @@ Run the command:
 .. code:: bash
 
     prox_task foo.yml
+
+The tool to filter proxy list by countries
+------------------------------------------
+
+Use `prox_geo` command with `--stat` option to see number of proxies grouped by country.
+
+Use `prox_geo` command with `-i`, `-x` and `--exclude-list` options to filter proxy list

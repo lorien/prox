@@ -1,7 +1,2 @@
 gunicorn
-gevent
-urllib3
-pysocks
-peewee
-bottle
-pyyaml
+bumpversion

@@ -13,3 +13,4 @@ pip-log.txt
 /.hg/
 /dist/
 /upload.sh
+prox/database/GeoLite2-Country.mmdb
