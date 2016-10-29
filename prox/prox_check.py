@@ -115,7 +115,8 @@ def normalize_plist_url(url):
 
 
 def check_plist(plist_url, proxy_type, threads=THREADS,
-                limit=None, name=None, save=False, repeat=REPEAT):
+                limit=None, name=None, save=False, repeat=REPEAT,
+                fail_file=None):
     if not name:
         name = plist_url.split('/')[-1]
 
@@ -177,6 +178,16 @@ def check_plist(plist_url, proxy_type, threads=THREADS,
             session_time=round(session_time, 2),
             ops=ops_blob,
         )
+    if fail_file:
+        rows = []
+        for addr, ops in stat['ops'].items():
+            for op in ops:
+                if op['status'] != 'ok':
+                    rows.append((op['status'], addr))
+        with open(fail_file, 'w') as out:
+            for row in sorted(rows, key=lambda x: x[0]):
+                out.write('%s:%s\n' % row)
+
 
 
 def main():
@@ -188,9 +199,10 @@ def main():
     parser.add_argument('-n', '--name')
     parser.add_argument('-r', '--repeat', type=int, default=REPEAT)
     parser.add_argument('-s', '--save', action='store_true', default=False)
+    parser.add_argument('--fail-file')
     opts = parser.parse_args()
     check_plist(opts.plist_url, limit=opts.limit, proxy_type=opts.proxy_type,
-                save=opts.save, repeat=opts.repeat)
+                save=opts.save, repeat=opts.repeat, fail_file=opts.fail_file)
 
 
 if __name__ == '__main__':
