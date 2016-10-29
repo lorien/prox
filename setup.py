@@ -29,7 +29,6 @@ setup(
     ],
     license = "MIT",
     keywords = "proxy proxylist",
-    include_package_data=True,
     classifiers = [
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.4',
