@@ -5,7 +5,7 @@ ROOT = os.path.dirname(os.path.realpath(__file__))
 
 setup(
     name = 'prox',
-    version = '0.0.15',
+    version = '0.0.16',
     description = 'The tool to check the health of proxy list',
     long_description = open(os.path.join(ROOT, 'README.rst')).read(),
     url = 'http://github.com/lorien/prox',
